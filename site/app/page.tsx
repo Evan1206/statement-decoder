@@ -18,8 +18,24 @@ const cases = [
   ['比較型', '「你看人家某某都已經買房了」', '比較基準不等於你的生活目標。', null, '人家的進度條，不是你的待辦清單 🏠'],
 ];
 
-function track(eventType: string, category?: string) {
-  void fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventType, category }) });
+const anonymousIdKey = 'statement-decoder-anonymous-id-v1';
+const feedbackReasons = ['分類不準', '分析太籠統', '過度推測對方', '忽略合理建議', '語氣不舒服', '其他'];
+
+function getAnonymousId() {
+  const now = Date.now();
+  try {
+    const stored = JSON.parse(localStorage.getItem(anonymousIdKey) ?? 'null') as { id?: string; expiresAt?: number } | null;
+    if (stored?.id && stored.expiresAt && stored.expiresAt > now) return stored.id;
+    const value = { id: crypto.randomUUID(), expiresAt: now + 30 * 24 * 60 * 60 * 1000 };
+    localStorage.setItem(anonymousIdKey, JSON.stringify(value));
+    return value.id;
+  } catch {
+    return undefined;
+  }
+}
+
+function track(eventType: string, category?: string, contextType?: string, label?: string) {
+  void fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventType, category, contextType, label, visitorId: getAnonymousId() }) });
 }
 
 export default function Home() {
@@ -29,18 +45,29 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [helpful, setHelpful] = useState<boolean | null>(null);
+  const [feedbackReason, setFeedbackReason] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'done'>('idle');
 
   useEffect(() => { track('page_view'); }, []);
 
   async function analyze() {
     if (!statement.trim()) return;
-    setLoading(true); setError(''); setResult(null); setHelpful(null);
-    const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ statement, contextType }) });
-    const data = await response.json();
-    if (!response.ok) setError(data.error ?? '暫時無法分析，請稍後再試。');
-    else setResult(data);
-    setLoading(false);
+    setLoading(true); setError(''); setResult(null); setHelpful(null); setFeedbackReason('');
+    track('analysis_started', undefined, contextType);
+    try {
+      const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ statement, contextType, visitorId: getAnonymousId() }) });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const label = response.status === 400 ? 'http_400' : 'http_500';
+        track('analysis_failed', undefined, contextType, label);
+        setError(data?.error ?? '暫時無法分析，請稍後再試。');
+      } else setResult(data);
+    } catch {
+      track('analysis_failed', undefined, contextType, 'network');
+      setError('網路連線不穩定，請稍後再試。');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function submitCase(event: FormEvent<HTMLFormElement>) {
@@ -53,6 +80,7 @@ export default function Home() {
         statement: form.get('statement'), context: form.get('context'),
         primaryCategory: form.get('category'), interpretation: form.get('interpretation'),
         privacyConfirmed: form.get('privacy') === 'on',
+        visitorId: getAnonymousId(),
       }),
     });
     setSubmitState(response.ok ? 'done' : 'idle');
@@ -88,7 +116,8 @@ export default function Home() {
         <div className="result-header"><div><span className="section-kicker">分析結果</span><h2>這句話較接近「{result.primary}」</h2></div><div className="tag-row"><span>{result.primary}</span>{result.secondary.map((item) => <span key={item}>{item}</span>)}</div></div>
         <div className="result-steps">{result.steps.map((step, index) => <article key={step.title}><span>0{index + 1}</span><div><h3>{step.title}</h3><p>{step.body}</p></div></article>)}</div>
         <blockquote>{result.summary}</blockquote>
-        <div className="helpful"><span>這個分析有幫助嗎？</span><button disabled={helpful !== null} onClick={() => { setHelpful(true); track('helpful_yes', result.primary); }}>有幫助</button><button disabled={helpful !== null} onClick={() => { setHelpful(false); track('helpful_no', result.primary); }}>還可以更好</button>{helpful !== null && <strong>謝謝你的回饋</strong>}</div>
+        <div className="helpful"><span>這個分析有幫助嗎？</span><button disabled={helpful !== null} onClick={() => { setHelpful(true); track('helpful_yes', result.primary, contextType); }}>有幫助</button><button disabled={helpful !== null} onClick={() => { setHelpful(false); track('helpful_no', result.primary, contextType); }}>還可以更好</button>{helpful === true && <strong>謝謝你的回饋</strong>}</div>
+        {helpful === false && <div className="feedback-reasons"><span>哪裡還可以更好？</span><div>{feedbackReasons.map((reason) => <button type="button" className={feedbackReason === reason ? 'selected' : ''} disabled={Boolean(feedbackReason)} key={reason} onClick={() => { setFeedbackReason(reason); track('feedback_reason', result.primary, contextType, reason); }}>{reason}</button>)}</div>{feedbackReason && <strong>收到，謝謝你幫我們調整方向 💛</strong>}</div>}
         <p className="disclaimer">這是依固定框架產生的初步判讀，不是心理診斷或專業治療建議。若涉及暴力、自傷或持續困擾，請尋求合格專業協助。</p>
       </section>}
 
@@ -107,7 +136,7 @@ export default function Home() {
 
       <section className="submit-section" id="submit">
         <div className="submit-copy"><span className="section-kicker">共同改善解碼框架</span><h2>你遇過一句讓人卡住的話嗎？</h2><p>你的匿名回饋能幫助我們改善話術分類、分析框架與安全防護，讓工具更貼近真實處境。</p>
-          <div className="data-use-note"><strong>投稿資料用途說明</strong><p>投稿內容僅用於改善分類規則，以及未來去識別化的模型訓練與評測。原始投稿不會公開、不會販售，也不會用於廣告；若未來希望改寫為公開案例，我們會另行取得你的同意。請勿填寫姓名、公司、地點或其他可識別資訊。</p></div>
+          <div className="data-use-note"><strong>投稿與匿名統計用途說明</strong><p>投稿內容僅用於改善分類規則，以及未來去識別化的模型訓練與評測。原始投稿不會公開、不會販售，也不會用於廣告；若未來希望改寫為公開案例，我們會另行取得你的同意。本站事件資料不儲存 IP、不建立瀏覽器指紋，也不記錄你貼入分析的原句；僅以 30 天到期的本站隨機代碼計算匿名使用裝置數。請勿在投稿填寫姓名、公司、地點或其他可識別資訊。</p></div>
         </div>
         {submitState === 'done' ? <div className="submit-success"><strong>投稿已收到</strong><p>謝謝你讓下一個遇到類似情境的人，多一份可以參考的經驗。</p><p className="gratitude">懷著感恩的心，謝謝你的分享 💛🙏</p></div> :
         <form onSubmit={submitCase}>

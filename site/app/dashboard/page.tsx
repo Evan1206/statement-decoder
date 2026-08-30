@@ -14,7 +14,11 @@ async function loadMetrics() {
       SUM(CASE WHEN event_type='submission_completed' THEN 1 ELSE 0 END) submissions,
       SUM(CASE WHEN event_type='helpful_yes' THEN 1 ELSE 0 END) helpful_yes,
       SUM(CASE WHEN event_type IN ('helpful_yes','helpful_no') THEN 1 ELSE 0 END) helpful_total,
-      SUM(CASE WHEN event_type='skill_clicked' THEN 1 ELSE 0 END) skill_clicks
+      SUM(CASE WHEN event_type='skill_clicked' THEN 1 ELSE 0 END) skill_clicks,
+      SUM(CASE WHEN event_type='analysis_started' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) tracked_starts,
+      SUM(CASE WHEN event_type='analysis_completed' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) tracked_completions,
+      SUM(CASE WHEN event_type='analysis_failed' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) tracked_failures,
+      COUNT(DISTINCT CASE WHEN event_type='analysis_completed' AND visitor_id IS NOT NULL AND created_at >= datetime('now','-30 days') THEN visitor_id END) active_devices_30d
       FROM events`).first<Row>();
     const pending = await env.DB.prepare(`SELECT COUNT(*) count FROM submissions WHERE status='pending'`).first<Row>();
     const categoryCase = `CASE category WHEN '否定勸退型' THEN '否定／貶低' WHEN '年齡／時間焦慮型' THEN '急迫／恐嚇' WHEN '經驗權威型' THEN '權威施壓' WHEN '恐嚇急迫型' THEN '急迫／恐嚇' WHEN '過來人合理化型' THEN '善意包裝' WHEN '比較型' THEN '比較／群體壓力' ELSE category END`;
@@ -23,9 +27,10 @@ async function loadMetrics() {
     const contexts = await env.DB.prepare(`SELECT context_type context, COUNT(*) count FROM events WHERE event_type='analysis_completed' AND context_type IS NOT NULL GROUP BY context_type ORDER BY count DESC`).all<Row>();
     const cross = await env.DB.prepare(`SELECT ${categoryCase} category, context_type context, COUNT(*) count FROM events WHERE event_type='analysis_completed' AND category IS NOT NULL AND context_type IS NOT NULL GROUP BY 1, context_type ORDER BY count DESC`).all<Row>();
     const trend = await env.DB.prepare(`SELECT substr(created_at,1,10) day, COUNT(*) count FROM events WHERE event_type='analysis_completed' AND created_at >= datetime('now','-30 days') GROUP BY day ORDER BY day`).all<Row>();
-    return { totals, pending: Number(pending?.count ?? 0), categories: categories.results, tags: tags.results, contexts: contexts.results, cross: cross.results, trend: trend.results, ready: true };
+    const feedbackReasons = await env.DB.prepare(`SELECT event_label label, COUNT(*) count FROM events WHERE event_type='feedback_reason' AND event_label IS NOT NULL GROUP BY event_label ORDER BY count DESC`).all<Row>();
+    return { totals, pending: Number(pending?.count ?? 0), categories: categories.results, tags: tags.results, contexts: contexts.results, cross: cross.results, trend: trend.results, feedbackReasons: feedbackReasons.results, ready: true };
   } catch {
-    return { totals: {}, pending: 0, categories: [], tags: [], contexts: [], cross: [], trend: [], ready: false };
+    return { totals: {}, pending: 0, categories: [], tags: [], contexts: [], cross: [], trend: [], feedbackReasons: [], ready: false };
   }
 }
 
@@ -34,11 +39,14 @@ export default async function Dashboard() {
   const analyses = Number(data.totals?.analyses ?? 0);
   const helpfulTotal = Number(data.totals?.helpful_total ?? 0);
   const helpfulRate = helpfulTotal ? Number(data.totals?.helpful_yes ?? 0) / helpfulTotal : 0;
+  const trackedStarts = Number(data.totals?.tracked_starts ?? 0);
+  const completionRate = trackedStarts ? Number(data.totals?.tracked_completions ?? 0) / trackedStarts : 0;
   const maxCategory = Math.max(1, ...data.categories.map((row) => Number(row.count)));
   const maxTag = Math.max(1, ...data.tags.map((row) => Number(row.count)));
   const maxContext = Math.max(1, ...data.contexts.map((row) => Number(row.count)));
   const maxCross = Math.max(1, ...data.cross.map((row) => Number(row.count)));
   const maxTrend = Math.max(1, ...data.trend.map((row) => Number(row.count)));
+  const maxFeedback = Math.max(1, ...data.feedbackReasons.map((row) => Number(row.count)));
   const crossCategories = [...new Set(data.cross.map((row) => String(row.category)))];
   const crossContexts = [...new Set(data.cross.map((row) => String(row.context)))];
   const crossCount = (category: string, context: string) => Number(data.cross.find((row) => row.category === category && row.context === context)?.count ?? 0);
@@ -51,6 +59,9 @@ export default async function Dashboard() {
     </section>
     <section className="metric-strip">
       <article><span>完成解碼</span><strong>{analyses}</strong><small>累計 analysis_completed 事件</small></article>
+      <article><span>近 30 天匿名裝置</span><strong>{Number(data.totals?.active_devices_30d ?? 0)}</strong><small>不是人數；同一瀏覽器隨機代碼去重</small></article>
+      <article><span>解碼完成率</span><strong>{(completionRate * 100).toFixed(0)}%</strong><small>{trackedStarts ? `${Number(data.totals?.tracked_completions ?? 0)} 完成／${trackedStarts} 開始` : '新埋點尚無資料'}</small></article>
+      <article><span>解碼失敗</span><strong>{Number(data.totals?.tracked_failures ?? 0)}</strong><small>網路或服務回應失敗</small></article>
       <article><span>匿名投稿</span><strong>{Number(data.totals?.submissions ?? 0)}</strong><small>成功送出的投稿</small></article>
       <article><span>有幫助率</span><strong>{(helpfulRate * 100).toFixed(0)}%</strong><small>有幫助 ÷ 全部回饋</small></article>
       <article><span>Skill 導流</span><strong>{Number(data.totals?.skill_clicks ?? 0)}</strong><small>前往 GitHub 的點擊</small></article>
@@ -60,6 +71,10 @@ export default async function Dashboard() {
       <article className="chart-card">
         <div><h2>最常遇到的話術機制</h2><p>每次完成解碼計一次；舊版分類已對應至新機制</p></div>
         <div className="bar-chart">{data.categories.length ? data.categories.map((row) => <div className="bar-row" key={String(row.category)}><span>{row.category}</span><div><i style={{ width: `${Number(row.count) / maxCategory * 100}%` }} /></div><strong>{row.count}</strong></div>) : <p className="empty">完成第一筆解碼後，這裡會顯示分類分布。</p>}</div>
+      </article>
+      <article className="chart-card">
+        <div><h2>「還可以更好」的原因</h2><p>使用者自願選擇的單一改善方向，不保存原句</p></div>
+        <div className="bar-chart tag-chart">{data.feedbackReasons.length ? data.feedbackReasons.map((row) => <div className="bar-row" key={String(row.label)}><span>{row.label}</span><div><i style={{ width: `${Number(row.count) / maxFeedback * 100}%` }} /></div><strong>{row.count}</strong></div>) : <p className="empty">收到改善原因後，這裡會顯示分布。</p>}</div>
       </article>
       <article className="chart-card">
         <div><h2>最常出現的次要標籤</h2><p>每次解碼可同時包含多個標籤，因此總數可能高於解碼數</p></div>
@@ -75,9 +90,9 @@ export default async function Dashboard() {
       </article>
     </section>
     <section className="heatmap-card">
-      <div><h2>情境 × 話術機制</h2><p>顏色越深，代表該情境下完成解碼的次數越多；只呈現彙總數，不顯示原句。</p></div>
-      {crossCategories.length && crossContexts.length ? <div className="heatmap-wrap"><table className="heatmap"><thead><tr><th>話術機制</th>{crossContexts.map((context) => <th key={context}>{context}</th>)}</tr></thead><tbody>{crossCategories.map((category) => <tr key={category}><th>{category}</th>{crossContexts.map((context) => { const count = crossCount(category, context); return <td key={context} title={`${category} × ${context}：${count}`} style={{ backgroundColor: count ? `rgba(243,111,67,${0.14 + count / maxCross * 0.76})` : undefined }}>{count || '—'}</td>; })}</tr>)}</tbody></table></div> : <p className="empty">累積帶有情境與分類的解碼後，這裡會出現交叉分析。</p>}
+      <div><h2>情境 × 話術機制</h2><p>顏色越深，代表該情境下完成解碼的次數越多；1–4 筆一律隱藏為「樣本不足」。</p></div>
+      {crossCategories.length && crossContexts.length ? <div className="heatmap-wrap"><table className="heatmap"><thead><tr><th>話術機制</th>{crossContexts.map((context) => <th key={context}>{context}</th>)}</tr></thead><tbody>{crossCategories.map((category) => <tr key={category}><th>{category}</th>{crossContexts.map((context) => { const count = crossCount(category, context); const visible = count >= 5; return <td key={context} title={visible ? `${category} × ${context}：${count}` : count ? '樣本少於 5 筆，已隱藏' : '目前沒有資料'} style={{ backgroundColor: visible ? `rgba(243,111,67,${0.14 + count / maxCross * 0.76})` : undefined }}>{visible ? count : count ? '樣本不足' : '—'}</td>; })}</tr>)}</tbody></table></div> : <p className="empty">累積帶有情境與分類的解碼後，這裡會出現交叉分析。</p>}
     </section>
-    <section className="metric-notes"><h2>指標定義</h2><dl><div><dt>話術機制</dt><dd>每次成功解碼的主要分類；一筆解碼只計一個主要機制。</dd></div><div><dt>次要標籤</dt><dd>同一筆解碼可有零至三個標籤，因此不可與解碼總數直接相加比較。</dd></div><div><dt>情境交叉</dt><dd>以完成解碼事件為統計單位，依主要機制與使用者選擇的情境分組；未選或舊資料缺值不納入。</dd></div><div><dt>有幫助率</dt><dd>點選「有幫助」次數除以所有正負回饋；沒有回饋時顯示 0%。</dd></div><div><dt>匿名投稿</dt><dd>通過必填與匿名化確認、成功寫入待審核資料表的投稿。</dd></div></dl><p>資料來源：D1 events／submissions 彙總；更新時間：{new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}</p></section>
+    <section className="metric-notes"><h2>指標定義</h2><dl><div><dt>匿名裝置</dt><dd>瀏覽器在本站產生的隨機代碼，30 天後到期；它不是登入帳號，也不等於真實人數。清除網站資料、更換瀏覽器或裝置都會重新計算。</dd></div><div><dt>解碼完成率</dt><dd>新埋點上線後，帶匿名代碼的完成事件除以開始事件；舊資料不混入分母。</dd></div><div><dt>話術機制</dt><dd>每次成功解碼的主要分類；一筆解碼只計一個主要機制。</dd></div><div><dt>次要標籤</dt><dd>同一筆解碼可有零至三個標籤，因此不可與解碼總數直接相加比較。</dd></div><div><dt>情境交叉</dt><dd>以完成解碼事件為統計單位，依主要機制與使用者選擇的情境分組；少於 5 筆不顯示精確數量。</dd></div><div><dt>有幫助率</dt><dd>點選「有幫助」次數除以所有正負回饋；沒有回饋時顯示 0%。</dd></div><div><dt>匿名投稿</dt><dd>通過必填與匿名化確認、成功寫入待審核資料表的投稿。</dd></div></dl><p>資料來源：D1 events／submissions 彙總；事件資料不保存分析原句、IP 或瀏覽器指紋。更新時間：{new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}</p></section>
   </main>;
 }

@@ -5,10 +5,14 @@ export const events = sqliteTable('events', {
   eventType: text('event_type').notNull(),
   category: text('category'),
   contextType: text('context_type'),
+  visitorId: text('visitor_id'),
+  eventLabel: text('event_label'),
   createdAt: text('created_at').notNull(),
 }, (table) => [
   index('idx_events_type_created').on(table.eventType, table.createdAt),
   index('idx_events_category').on(table.category),
+  index('idx_events_visitor_created').on(table.visitorId, table.createdAt),
+  index('idx_events_type_label').on(table.eventType, table.eventLabel),
 ]);
 
 export const submissions = sqliteTable('submissions', {

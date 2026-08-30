@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   await ensureDatabase();
   const body = await request.json().catch(() => null) as {
     statement?: string; context?: string; primaryCategory?: string;
-    secondaryCategories?: string[]; interpretation?: string; privacyConfirmed?: boolean;
+    secondaryCategories?: string[]; interpretation?: string; privacyConfirmed?: boolean; visitorId?: string;
   } | null;
   const statement = body?.statement?.trim() ?? '';
   const context = body?.context?.trim() ?? '';
@@ -22,7 +22,8 @@ export async function POST(request: Request) {
   await env.DB.prepare(
     'INSERT INTO submissions (statement, context, primary_category, secondary_categories, interpretation, status, privacy_confirmed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
   ).bind(statement, context, primaryCategory, JSON.stringify(secondary), body.interpretation?.trim() || null, 'pending', 1, new Date().toISOString()).run();
-  await env.DB.prepare('INSERT INTO events (event_type, category, context_type, created_at) VALUES (?, ?, ?, ?)')
-    .bind('submission_completed', primaryCategory, null, new Date().toISOString()).run();
+  const visitorId = body?.visitorId && /^[a-zA-Z0-9-]{8,80}$/.test(body.visitorId) ? body.visitorId : null;
+  await env.DB.prepare('INSERT INTO events (event_type, category, context_type, visitor_id, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind('submission_completed', primaryCategory, null, visitorId, new Date().toISOString()).run();
   return NextResponse.json({ ok: true });
 }

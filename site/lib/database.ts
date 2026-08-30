@@ -14,6 +14,8 @@ async function initialize() {
       event_type TEXT NOT NULL,
       category TEXT,
       context_type TEXT,
+      visitor_id TEXT,
+      event_label TEXT,
       created_at TEXT NOT NULL
     )`),
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS submissions (
@@ -29,6 +31,8 @@ async function initialize() {
     )`),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_events_type_created ON events(event_type, created_at)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_events_category ON events(category)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_events_visitor_created ON events(visitor_id, created_at)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_events_type_label ON events(event_type, event_label)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_submissions_status_created ON submissions(status, created_at)'),
   ]);
 }

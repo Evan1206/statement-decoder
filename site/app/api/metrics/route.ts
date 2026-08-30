@@ -10,7 +10,11 @@ export async function GET() {
       SUM(CASE WHEN event_type = 'submission_completed' THEN 1 ELSE 0 END) AS submissions,
       SUM(CASE WHEN event_type = 'helpful_yes' THEN 1 ELSE 0 END) AS helpful_yes,
       SUM(CASE WHEN event_type IN ('helpful_yes','helpful_no') THEN 1 ELSE 0 END) AS helpful_total,
-      SUM(CASE WHEN event_type = 'skill_clicked' THEN 1 ELSE 0 END) AS skill_clicks
+      SUM(CASE WHEN event_type = 'skill_clicked' THEN 1 ELSE 0 END) AS skill_clicks,
+      SUM(CASE WHEN event_type = 'analysis_started' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) AS tracked_starts,
+      SUM(CASE WHEN event_type = 'analysis_completed' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) AS tracked_completions,
+      SUM(CASE WHEN event_type = 'analysis_failed' AND visitor_id IS NOT NULL THEN 1 ELSE 0 END) AS tracked_failures,
+      COUNT(DISTINCT CASE WHEN event_type = 'analysis_completed' AND visitor_id IS NOT NULL AND created_at >= datetime('now', '-30 days') THEN visitor_id END) AS active_devices_30d
     FROM events`,
   ).first();
   const categoryRows = await env.DB.prepare(
@@ -55,6 +59,12 @@ export async function GET() {
      GROUP BY day ORDER BY day ASC`,
   ).all();
   const pending = await env.DB.prepare(`SELECT COUNT(*) AS count FROM submissions WHERE status = 'pending'`).first();
+  const feedbackRows = await env.DB.prepare(
+    `SELECT event_label AS label, COUNT(*) AS count FROM events
+     WHERE event_type = 'feedback_reason' AND event_label IS NOT NULL
+     GROUP BY event_label ORDER BY count DESC`,
+  ).all();
+  const trackedStarts = Number(totals?.tracked_starts ?? 0);
   return NextResponse.json({
     totals: {
       analyses: Number(totals?.analyses ?? 0),
@@ -62,12 +72,18 @@ export async function GET() {
       helpfulRate: Number(totals?.helpful_total ?? 0) > 0 ? Number(totals?.helpful_yes ?? 0) / Number(totals?.helpful_total) : 0,
       skillClicks: Number(totals?.skill_clicks ?? 0),
       pending: Number(pending?.count ?? 0),
+      activeDevices30d: Number(totals?.active_devices_30d ?? 0),
+      trackedStarts,
+      trackedCompletions: Number(totals?.tracked_completions ?? 0),
+      trackedFailures: Number(totals?.tracked_failures ?? 0),
+      completionRate: trackedStarts > 0 ? Number(totals?.tracked_completions ?? 0) / trackedStarts : 0,
     },
     categories: categoryRows.results,
     tags: tagRows.results,
     contexts: contextRows.results,
     cross: crossRows.results,
     trend: trendRows.results,
+    feedbackReasons: feedbackRows.results,
     freshness: new Date().toISOString(),
   });
 }
