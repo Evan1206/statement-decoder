@@ -105,14 +105,16 @@ export default function Home() {
       </section>
 
       <section className="submit-section" id="submit">
-        <div className="submit-copy"><span className="section-kicker">共同建立案例庫</span><h2>你遇過一句讓人卡住的話嗎？</h2><p>投稿會先進入待審核區；確認匿名化與分析品質後，才可能收錄到公開案例庫。</p></div>
-        {submitState === 'done' ? <div className="submit-success"><strong>投稿已收到</strong><p>謝謝你讓下一個遇到類似情境的人，多一份可以參考的經驗。</p></div> :
+        <div className="submit-copy"><span className="section-kicker">共同改善解碼框架</span><h2>你遇過一句讓人卡住的話嗎？</h2><p>你的匿名回饋能幫助我們改善話術分類、分析框架與安全防護，讓工具更貼近真實處境。</p>
+          <div className="data-use-note"><strong>投稿資料用途說明</strong><p>投稿內容僅用於改善分類規則，以及未來去識別化的模型訓練與評測。原始投稿不會公開、不會販售，也不會用於廣告；若未來希望改寫為公開案例，我們會另行取得你的同意。請勿填寫姓名、公司、地點或其他可識別資訊。</p></div>
+        </div>
+        {submitState === 'done' ? <div className="submit-success"><strong>投稿已收到</strong><p>謝謝你讓下一個遇到類似情境的人，多一份可以參考的經驗。</p><p className="gratitude">懷著感恩的心，謝謝你的分享 💛🙏</p></div> :
         <form onSubmit={submitCase}>
           <label>話術原文<textarea name="statement" required maxLength={500} placeholder="請移除姓名、公司與可辨識資訊" /></label>
           <label>情境（一句話）<input name="context" required maxLength={300} placeholder="例如：主管在我提出離職時說的" /></label>
           <label>你認為屬於哪一類<select name="category" defaultValue="待分類"><option>待分類</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
           <label>你的解讀（選填）<textarea name="interpretation" maxLength={500} placeholder="你當時怎麼理解這句話？" /></label>
-          <label className="check"><input name="privacy" type="checkbox" required /> 我已移除姓名、公司、地點及其他可識別個人的資訊，並了解投稿內容會先由管理者審核。</label>
+          <label className="check"><input name="privacy" type="checkbox" required /> 我已移除姓名、公司、地點及其他可識別個人的資訊，並同意這份匿名投稿用於改善分類規則，以及未來去識別化的模型訓練與評測；原始內容不會公開。</label>
           <button type="submit" disabled={submitState === 'sending'}>{submitState === 'sending' ? '送出中…' : '送出匿名投稿 →'}</button>
         </form>}
       </section>
