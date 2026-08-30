@@ -10,12 +10,12 @@ type Result = {
 
 const samples = ['學 AI 沒用啦！', '你不年輕了，要趕快找工作了。', '我當年也是這樣熬過來的，你忍一忍就好。'];
 const cases = [
-  ['否定勸退型', '「學 AI 沒用啦！」', '檢查「沒用」的判準與實際證據；這也可能反映說話者自己的興趣、經驗或能力邊界。', '可能含自我投射'],
-  ['年齡／時間焦慮型', '「你不年輕了，要趕快找工作了」', '把模糊焦慮換成真實期限；其中也可能投射說話者對人生時程或安全感的焦慮。', '可能含自我投射'],
-  ['經驗權威型', '「我吃過的鹽比你吃過的飯多」', '確認經驗是否與問題直接相關。'],
-  ['恐嚇急迫型', '「現在不做，以後就來不及了」', '查證是否真的有不可逆期限。'],
-  ['過來人合理化型', '「我當年也是這樣熬過來的」', '比較過去與現在的條件及代價。'],
-  ['比較型', '「你看人家某某都已經買房了」', '比較基準不等於你的生活目標。'],
+  ['否定勸退型', '「學 AI 沒用啦！」', '檢查「沒用」的判準與實際證據；這也可能反映說話者自己的興趣、經驗或能力邊界。', '可能含自我投射', '是 AI 沒用，還是目前沒有用對地方？🤖'],
+  ['年齡／時間焦慮型', '「你不年輕了，要趕快找工作了」', '把模糊焦慮換成真實期限；其中也可能投射說話者對人生時程或安全感的焦慮。', '可能含自我投射', '人生不是限時搶購，倒數計時先關掉 ⏳'],
+  ['經驗權威型', '「我吃過的鹽比你吃過的飯多」', '確認經驗是否與問題直接相關。', null, '那你的腎臟還好嗎？🧂'],
+  ['恐嚇急迫型', '「現在不做，以後就來不及了」', '查證是否真的有不可逆期限。', null, '請先出示真正的截止日期 📅'],
+  ['過來人合理化型', '「我當年也是這樣熬過來的」', '比較過去與現在的條件及代價。', null, '熬過來，不代表還要繼續熬下一鍋 🍲'],
+  ['比較型', '「你看人家某某都已經買房了」', '比較基準不等於你的生活目標。', null, '人家的進度條，不是你的待辦清單 🏠'],
 ];
 
 function track(eventType: string, category?: string) {
@@ -102,7 +102,7 @@ export default function Home() {
 
       <section className="cases-section" id="cases">
         <span className="section-kicker">六類常見話術</span><h2>先辨識模式，再回到具體情境。</h2>
-        <div className="case-grid">{cases.map(([type, quote, note, projection], index) => <article key={type}><span>0{index + 1}</span><div className="case-title"><h3>{type}</h3>{projection && <em>{projection}</em>}</div><blockquote>{quote}</blockquote><p>{note}</p></article>)}</div>
+        <div className="case-grid">{cases.map(([type, quote, note, projection, aside], index) => <article key={type}><span>0{index + 1}</span><div className="case-title"><h3>{type}</h3>{projection && <em>{projection}</em>}</div><blockquote>{quote}</blockquote><div className="gentle-roast"><strong>小聲吐槽</strong><span>{aside}</span></div><p>{note}</p></article>)}</div>
       </section>
 
       <section className="submit-section" id="submit">
