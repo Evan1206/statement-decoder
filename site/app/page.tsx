@@ -117,7 +117,22 @@ export default function Home() {
         </form>}
       </section>
 
-      <section className="source-section"><p>概念啟發自台灣講師姚詩豪的公開分享。取得原貼文精確網址後，將在此提供來源連結；本站不複製貼文原文。</p></section>
+      <section className="origin-section" aria-labelledby="origin-title">
+        <div className="origin-mark">起</div>
+        <div>
+          <span className="section-kicker">為什麼做這個工具</span>
+          <h2 id="origin-title">一句看似肯定的話，<br />不一定是客觀事實。</h2>
+        </div>
+        <div className="origin-copy">
+          <p>這個專案的起點，是注意到人們很容易把主管、長輩或其他權威者的個人觀點，直接當成對世界的客觀結論。當有人斷言某件事「沒有用」，那句話也可能反映的是他自己的興趣、接觸程度、經驗與限制。</p>
+          <p>我們想提供一個停頓點：先分離事實與觀點，觀察話語是否反覆影響自我判斷，再保留真正值得參考的部分。目標不是把每句建議都視為操控，而是幫助人找回清晰思考與求助的空間。</p>
+          <div className="source-card">
+            <span>概念啟發來源</span>
+            <strong>台灣講師姚詩豪的 Facebook 公開分享</strong>
+            <small>尚待補上可核對的原始貼文分享連結；本站不複製原文。</small>
+          </div>
+        </div>
+      </section>
       <footer><div><strong>話中話解碼器</strong><small>清晰思考，不提供反擊彈藥。</small></div><a href="https://github.com/Evan1206/statement-decoder" target="_blank" rel="noreferrer">開源專案 →</a></footer>
     </main>
   );

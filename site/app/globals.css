@@ -80,8 +80,14 @@ select,input { border:1px solid var(--line); border-radius:9px; background:white
 .submit-section form>button { border:0; background:var(--ink); color:white; border-radius:999px; padding:14px 20px; font-weight:900; cursor:pointer; }
 .submit-success { background:var(--lime); border-radius:20px; padding:36px; }
 .submit-success strong { font-size:26px; }
-.source-section { padding:32px 20px; text-align:center; color:var(--muted); font-size:13px; border-bottom:1px solid var(--line); }
-.source-section p { max-width:760px; margin:0 auto; line-height:1.7; }
+.origin-section { width:min(1180px,calc(100% - 40px)); margin:0 auto; padding:100px 0; display:grid; grid-template-columns:70px .8fr 1.2fr; gap:36px; align-items:start; }
+.origin-mark { display:grid; place-items:center; width:54px; height:54px; border-radius:50%; background:var(--orange); font-size:22px; font-weight:900; }
+.origin-section h2 { margin:12px 0 0; font-size:clamp(34px,4vw,54px); line-height:1.08; letter-spacing:-.05em; }
+.origin-copy>p { margin:0 0 18px; color:var(--muted); line-height:1.85; }
+.source-card { margin-top:28px; padding:22px; border:1px solid var(--line); border-radius:16px; display:grid; gap:7px; background:white; }
+.source-card span { color:var(--orange); font-size:11px; font-weight:900; letter-spacing:.12em; }
+.source-card strong { font-size:17px; }
+.source-card small { color:var(--muted); line-height:1.5; }
 footer { background:var(--orange); color:#231b18; min-height:180px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:40px max(20px,calc((100vw - 1180px)/2)); }
 footer div { display:grid; gap:8px; }
 footer strong { font-size:clamp(26px,4vw,48px); font-weight:900; letter-spacing:-.04em; }
@@ -101,6 +107,7 @@ footer a { border:1px solid currentColor; border-radius:999px; padding:14px 20px
   .input-footer button { width:100%; }
   .case-grid { grid-template-columns:1fr; }
   .submit-section { grid-template-columns:1fr; gap:36px; }
+  .origin-section { grid-template-columns:1fr; gap:24px; }
   .framework-steps { grid-template-columns:1fr; }
   .framework-steps div { min-height:76px; border-right:0; border-bottom:1px solid var(--line); flex-direction:row; align-items:center; }
   footer { align-items:flex-start; flex-direction:column; }
