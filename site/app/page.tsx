@@ -62,13 +62,14 @@ export default function Home() {
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="話中話解碼器首頁"><span className="brand-mark">話</span><span>話中話解碼器</span></a>
+        <a className="brand" href="#top" aria-label="修但幾咧～真的是這樣嗎？首頁"><span className="brand-mark">慢</span><span>修但幾咧～真的是這樣嗎？ <b aria-hidden="true">🤔💛</b></span></a>
         <nav aria-label="主要導覽"><a href="#cases">案例庫</a><a href="#skill">AI Skill</a><a href="/dashboard">數據</a><a className="nav-cta" href="#submit" onClick={() => track('submission_opened')}>投稿話術</a></nav>
       </header>
 
       <section className="hero" id="top">
         <div className="eyebrow">STATEMENT DECODER · 免費公共工具</div>
-        <h1>別急著相信，<br /><span>先把這句話拆開。</span></h1>
+        <div className="hero-banner"><img src="/hero-banner.png" alt="修但幾咧～真的是這樣嗎？別急著相信，先把這句話拆開。" /></div>
+        <h1>修但幾咧～<br /><span>真的是這樣嗎？🤔💛</span></h1>
         <p className="hero-copy">當一句話讓你焦慮、自我懷疑，或不知道該不該聽，用五個步驟分清事實、觀點，以及真正值得參考的部分。</p>
         <div className="decoder-card" aria-labelledby="decoder-title">
           <div className="card-heading"><div><span className="step-label">第一步</span><h2 id="decoder-title">貼上讓你困擾的一句話</h2></div><span className="privacy-note">分析原句不會被公開保存</span></div>
@@ -136,7 +137,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <footer><div><strong>話中話解碼器</strong><small>清晰思考，不提供反擊彈藥。</small></div><a href="https://github.com/Evan1206/statement-decoder" target="_blank" rel="noreferrer">開源專案 →</a></footer>
+      <footer><div><strong>修但幾咧～真的是這樣嗎？🤔💛</strong><small>Statement Decoder · 清晰思考，不提供反擊彈藥。</small></div><a href="https://github.com/Evan1206/statement-decoder" target="_blank" rel="noreferrer">開源專案 →</a></footer>
     </main>
   );
 }

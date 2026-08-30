@@ -34,7 +34,7 @@ export default async function Dashboard() {
   const maxTrend = Math.max(1, ...data.trend.map((row) => Number(row.count)));
 
   return <main className="dashboard">
-    <header className="dashboard-nav"><Link className="brand" href="/"><span className="brand-mark">話</span><span>話中話解碼器</span></Link><Link href="/">← 回到解碼器</Link></header>
+    <header className="dashboard-nav"><Link className="brand" href="/"><span className="brand-mark">慢</span><span>修但幾咧～真的是這樣嗎？ 🤔💛</span></Link><Link href="/">← 回到解碼器</Link></header>
     <section className="dashboard-heading">
       <div><span className="section-kicker">LIVE PRODUCT METRICS</span><h1>使用與投稿概況</h1><p>只呈現彙總事件，不顯示使用者輸入的原始話語。</p></div>
       <span className={data.ready ? 'status-ready' : 'status-empty'}>{data.ready ? '資料庫已連線' : '等待第一筆資料'}</span>
