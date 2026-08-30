@@ -113,7 +113,7 @@ export default function Home() {
         <form onSubmit={submitCase}>
           <label>話術原文<textarea name="statement" required maxLength={500} placeholder="請移除姓名、公司與可辨識資訊" /></label>
           <label>情境（一句話）<input name="context" required maxLength={300} placeholder="例如：主管在我提出離職時說的" /></label>
-          <label>你認為屬於哪一類<select name="category" defaultValue="待分類"><option>待分類</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+          <label>你覺得比較接近哪種話術機制？<select name="category" defaultValue="待分類"><option value="待分類">不確定，請協助分類</option>{categories.map((category) => <option key={category}>{category}</option>)}</select><small className="field-hint">先選最主要的一種即可；同一句話仍可能包含多個次要標籤。</small></label>
           <label>你的解讀（選填）<textarea name="interpretation" maxLength={500} placeholder="你當時怎麼理解這句話？" /></label>
           <label className="check"><input name="privacy" type="checkbox" required /> 我已移除姓名、公司、地點及其他可識別個人的資訊，並同意這份匿名投稿用於改善分類規則，以及未來去識別化的模型訓練與評測；原始內容不會公開。</label>
           <button type="submit" disabled={submitState === 'sending'}>{submitState === 'sending' ? '送出中…' : '送出匿名投稿 →'}</button>
