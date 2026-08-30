@@ -147,12 +147,22 @@ footer a { border:1px solid currentColor; border-radius:999px; padding:14px 20px
 .bar-row { display:grid; grid-template-columns:120px 1fr 30px; gap:12px; align-items:center; font-size:12px; }
 .bar-row div { height:12px; background:var(--cream); border-radius:99px; overflow:hidden; }
 .bar-row i { display:block; height:100%; background:var(--orange); border-radius:99px; }
+.tag-chart .bar-row i { background:var(--lime); }
+.context-chart .bar-row i { background:var(--ink); }
 .trend-chart { height:270px; margin-top:30px; display:flex; align-items:flex-end; gap:8px; border-bottom:1px solid var(--line); }
 .trend-chart>div { flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:7px; }
 .trend-chart i { width:80%; max-width:28px; background:var(--ink); border-radius:5px 5px 0 0; }
 .trend-chart span { color:var(--muted); font-size:9px; transform:rotate(-45deg); }
 .empty { align-self:center; margin:auto!important; text-align:center; }
 .metric-notes { width:min(1180px,calc(100% - 40px)); margin:14px auto 0; background:var(--ink); color:white; border-radius:18px; padding:28px; }
+.heatmap-card { width:min(1180px,calc(100% - 40px)); margin:14px auto; background:white; border:1px solid var(--line); border-radius:18px; padding:25px; }
+.heatmap-card h2 { margin:0; }
+.heatmap-card>div>p { color:var(--muted); margin:7px 0 0; font-size:12px; }
+.heatmap-wrap { overflow-x:auto; margin-top:24px; }
+.heatmap { width:100%; min-width:680px; border-collapse:separate; border-spacing:6px; font-size:12px; }
+.heatmap th { padding:10px; text-align:left; }
+.heatmap thead th:not(:first-child) { text-align:center; }
+.heatmap td { min-width:68px; padding:14px 10px; border-radius:9px; background:var(--paper); text-align:center; font-weight:900; }
 .metric-notes h2 { margin-top:0; }
 .metric-notes dl { display:grid; grid-template-columns:repeat(3,1fr); gap:25px; }
 .metric-notes dt { font-weight:900; margin-bottom:7px; }

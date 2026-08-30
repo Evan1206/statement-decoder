@@ -11,7 +11,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '請輸入 2–500 字的話語。' }, { status: 400 });
   }
   const result = decodeStatement(statement);
-  await env.DB.prepare('INSERT INTO events (event_type, category, context_type, created_at) VALUES (?, ?, ?, ?)')
-    .bind('analysis_completed', result.primary, body?.contextType ?? null, new Date().toISOString()).run();
+  const createdAt = new Date().toISOString();
+  const contextType = body?.contextType ?? null;
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO events (event_type, category, context_type, created_at) VALUES (?, ?, ?, ?)')
+      .bind('analysis_completed', result.primary, contextType, createdAt),
+    ...result.secondary.map((tag) => env.DB.prepare('INSERT INTO events (event_type, category, context_type, created_at) VALUES (?, ?, ?, ?)')
+      .bind('analysis_tag', tag, contextType, createdAt)),
+  ]);
   return NextResponse.json(result);
 }

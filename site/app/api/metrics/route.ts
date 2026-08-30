@@ -14,9 +14,40 @@ export async function GET() {
     FROM events`,
   ).first();
   const categoryRows = await env.DB.prepare(
-    `SELECT category, COUNT(*) AS count FROM events
+    `SELECT CASE category
+       WHEN '否定勸退型' THEN '否定／貶低'
+       WHEN '年齡／時間焦慮型' THEN '急迫／恐嚇'
+       WHEN '經驗權威型' THEN '權威施壓'
+       WHEN '恐嚇急迫型' THEN '急迫／恐嚇'
+       WHEN '過來人合理化型' THEN '善意包裝'
+       WHEN '比較型' THEN '比較／群體壓力'
+       ELSE category END AS category, COUNT(*) AS count FROM events
      WHERE event_type = 'analysis_completed' AND category IS NOT NULL
+     GROUP BY 1 ORDER BY count DESC`,
+  ).all();
+  const tagRows = await env.DB.prepare(
+    `SELECT category AS tag, COUNT(*) AS count FROM events
+     WHERE event_type = 'analysis_tag' AND category IS NOT NULL
      GROUP BY category ORDER BY count DESC`,
+  ).all();
+  const contextRows = await env.DB.prepare(
+    `SELECT context_type AS context, COUNT(*) AS count FROM events
+     WHERE event_type = 'analysis_completed' AND context_type IS NOT NULL
+     GROUP BY context_type ORDER BY count DESC`,
+  ).all();
+  const crossRows = await env.DB.prepare(
+    `SELECT CASE category
+       WHEN '否定勸退型' THEN '否定／貶低'
+       WHEN '年齡／時間焦慮型' THEN '急迫／恐嚇'
+       WHEN '經驗權威型' THEN '權威施壓'
+       WHEN '恐嚇急迫型' THEN '急迫／恐嚇'
+       WHEN '過來人合理化型' THEN '善意包裝'
+       WHEN '比較型' THEN '比較／群體壓力'
+       ELSE category END AS category,
+       context_type AS context, COUNT(*) AS count
+     FROM events
+     WHERE event_type = 'analysis_completed' AND category IS NOT NULL AND context_type IS NOT NULL
+     GROUP BY 1, context_type ORDER BY count DESC`,
   ).all();
   const trendRows = await env.DB.prepare(
     `SELECT substr(created_at, 1, 10) AS day, COUNT(*) AS count FROM events
@@ -33,6 +64,9 @@ export async function GET() {
       pending: Number(pending?.count ?? 0),
     },
     categories: categoryRows.results,
+    tags: tagRows.results,
+    contexts: contextRows.results,
+    cross: crossRows.results,
     trend: trendRows.results,
     freshness: new Date().toISOString(),
   });
