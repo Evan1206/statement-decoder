@@ -25,6 +25,11 @@ h1 span::after { content:""; position:absolute; left:-1%; right:-1%; bottom:2px;
 .privacy-note { color:var(--muted); font-size:12px; padding:7px 11px; background:var(--paper); border-radius:99px; white-space:nowrap; }
 textarea { width:100%; min-height:150px; resize:vertical; border:0; outline:0; background:#f8f7f2; border-radius:14px; padding:20px; color:var(--ink); line-height:1.7; }
 textarea:focus { box-shadow:0 0 0 2px var(--lime); }
+.reflection-questions { margin-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.reflection-questions>div { display:flex; gap:10px; padding:14px; border:1px solid var(--line); border-radius:13px; background:#fffdf8; }
+.reflection-questions>div>span { flex:0 0 25px; width:25px; height:25px; display:grid; place-items:center; border-radius:50%; background:var(--cream); color:var(--orange); font-weight:900; font-size:12px; }
+.reflection-questions label { width:100%; color:var(--ink); font-size:12px; font-weight:800; line-height:1.5; }
+.reflection-questions select { width:100%; margin-top:9px; font-weight:500; }
 .input-footer { display:flex; justify-content:space-between; align-items:center; gap:14px; padding-top:16px; color:var(--muted); font-size:12px; }
 .input-footer label { display:flex; align-items:center; gap:8px; }
 select,input { border:1px solid var(--line); border-radius:9px; background:white; color:var(--ink); padding:9px 11px; }
@@ -125,6 +130,7 @@ footer a { border:1px solid currentColor; border-radius:999px; padding:14px 20px
   .tag-row { justify-content:flex-start; }
   .input-footer { align-items:flex-start; flex-wrap:wrap; }
   .input-footer button { width:100%; }
+  .reflection-questions { grid-template-columns:1fr; }
   .case-grid { grid-template-columns:1fr; }
   .submit-section { grid-template-columns:1fr; gap:36px; }
   .origin-section { grid-template-columns:1fr; gap:24px; }

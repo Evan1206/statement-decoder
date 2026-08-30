@@ -8,6 +8,12 @@ type Result = {
   steps: Array<{ title: string; body: string }>; summary: string;
 };
 
+type ReflectionAnswers = {
+  evidence: '' | 'yes' | 'no' | 'unknown';
+  nature: '' | 'event' | 'judgment' | 'unknown';
+  frequency: '' | 'first' | 'sometimes' | 'often';
+};
+
 const samples = ['學 AI 沒用啦！', '你不年輕了，要趕快找工作了。', '我當年也是這樣熬過來的，你忍一忍就好。'];
 const cases = [
   ['否定勸退型', '「學 AI 沒用啦！」', '檢查「沒用」的判準與實際證據；這也可能反映說話者自己的興趣、經驗或能力邊界。', '可能含自我投射', '是 AI 沒用，還是目前沒有用對地方？🤖'],
@@ -41,6 +47,7 @@ function track(eventType: string, category?: string, contextType?: string, label
 export default function Home() {
   const [statement, setStatement] = useState('');
   const [contextType, setContextType] = useState('職場');
+  const [answers, setAnswers] = useState<ReflectionAnswers>({ evidence: '', nature: '', frequency: '' });
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +62,7 @@ export default function Home() {
     setLoading(true); setError(''); setResult(null); setHelpful(null); setFeedbackReason('');
     track('analysis_started', undefined, contextType);
     try {
-      const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ statement, contextType, visitorId: getAnonymousId() }) });
+      const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ statement, contextType, answers, visitorId: getAnonymousId() }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
         const label = response.status === 400 ? 'http_400' : 'http_500';
@@ -102,10 +109,15 @@ export default function Home() {
         <div className="decoder-card" aria-labelledby="decoder-title">
           <div className="card-heading"><div><span className="step-label">第一步</span><h2 id="decoder-title">貼上讓你困擾的一句話</h2></div><span className="privacy-note">分析原句不會被公開保存</span></div>
           <textarea value={statement} onChange={(event) => setStatement(event.target.value)} placeholder="例如：主管跟我說「你現在離職，履歷就毀了。」" maxLength={500} aria-label="要分析的話語" />
+          <div className="reflection-questions">
+            <div><span>1</span><label>對方有提供具體資料、規定或案例嗎？<select value={answers.evidence} onChange={(event) => setAnswers({ ...answers, evidence: event.target.value as ReflectionAnswers['evidence'] })}><option value="">請選擇</option><option value="yes">有</option><option value="no">沒有</option><option value="unknown">不確定</option></select></label></div>
+            <div><span>2</span><label>這句話比較像哪一種？<select value={answers.nature} onChange={(event) => setAnswers({ ...answers, nature: event.target.value as ReflectionAnswers['nature'] })}><option value="">請選擇</option><option value="event">描述已發生的事</option><option value="judgment">預測或個人評價</option><option value="unknown">不確定</option></select></label></div>
+            <div><span>3</span><label>類似說法出現的頻率？<select value={answers.frequency} onChange={(event) => setAnswers({ ...answers, frequency: event.target.value as ReflectionAnswers['frequency'] })}><option value="">請選擇</option><option value="first">第一次</option><option value="sometimes">偶爾</option><option value="often">經常</option></select></label></div>
+          </div>
           <div className="input-footer">
             <label>情境 <select value={contextType} onChange={(event) => setContextType(event.target.value)}><option>職場</option><option>家庭</option><option>感情</option><option>朋友</option><option>金錢</option><option>其他</option></select></label>
             <span>{statement.length}/500</span>
-            <button type="button" disabled={!statement.trim() || loading} onClick={analyze}>{loading ? '拆解中…' : '開始客觀拆解 →'}</button>
+            <button type="button" disabled={!statement.trim() || !answers.evidence || !answers.nature || !answers.frequency || loading} onClick={analyze}>{loading ? '整理中…' : '查看檢核結果 →'}</button>
           </div>
           {error && <p className="error" role="alert">{error}</p>}
         </div>

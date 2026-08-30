@@ -1,16 +1,20 @@
 import { env } from 'cloudflare:workers';
 import { NextResponse } from 'next/server';
-import { decodeStatement } from '../../../lib/decoder';
+import { decodeStatement, type ReflectionAnswers } from '../../../lib/decoder';
 import { ensureDatabase } from '../../../lib/database';
 
 export async function POST(request: Request) {
   await ensureDatabase();
-  const body = await request.json().catch(() => null) as { statement?: string; contextType?: string; visitorId?: string } | null;
+  const body = await request.json().catch(() => null) as { statement?: string; contextType?: string; visitorId?: string; answers?: ReflectionAnswers } | null;
   const statement = body?.statement?.trim() ?? '';
   if (statement.length < 2 || statement.length > 500) {
     return NextResponse.json({ error: '請輸入 2–500 字的話語。' }, { status: 400 });
   }
-  const result = decodeStatement(statement);
+  const answers = body?.answers;
+  if (!answers || !['yes', 'no', 'unknown'].includes(answers.evidence) || !['event', 'judgment', 'unknown'].includes(answers.nature) || !['first', 'sometimes', 'often'].includes(answers.frequency)) {
+    return NextResponse.json({ error: '請完成三個簡短問題。' }, { status: 400 });
+  }
+  const result = decodeStatement(statement, answers);
   const createdAt = new Date().toISOString();
   const contextType = body?.contextType ?? null;
   const visitorId = body?.visitorId && /^[a-zA-Z0-9-]{8,80}$/.test(body.visitorId) ? body.visitorId : null;
