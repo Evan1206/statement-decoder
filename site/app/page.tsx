@@ -132,6 +132,7 @@ export default function Home() {
             <span>概念啟發來源</span>
             <strong>台灣講師姚詩豪的 Facebook 公開分享</strong>
             <small>尚待補上可核對的原始貼文分享連結；本站不複製原文。</small>
+            <small className="independence-note">本專案為獨立開源發想與實作，與姚詩豪本人無合作、授權、代言或隸屬關係；網站內容、分析與相關責任均由本專案維護者承擔。</small>
           </div>
         </div>
       </section>

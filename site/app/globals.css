@@ -92,6 +92,7 @@ select,input { border:1px solid var(--line); border-radius:9px; background:white
 .source-card span { color:var(--orange); font-size:11px; font-weight:900; letter-spacing:.12em; }
 .source-card strong { font-size:17px; }
 .source-card small { color:var(--muted); line-height:1.5; }
+.source-card .independence-note { margin-top:8px; padding-top:12px; border-top:1px solid var(--line); }
 footer { background:var(--orange); color:#231b18; min-height:180px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:40px max(20px,calc((100vw - 1180px)/2)); }
 footer div { display:grid; gap:8px; }
 footer strong { font-size:clamp(26px,4vw,48px); font-weight:900; letter-spacing:-.04em; }
