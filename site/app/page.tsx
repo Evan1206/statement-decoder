@@ -124,17 +124,12 @@ export default function Home() {
         <div className="origin-mark">起</div>
         <div>
           <span className="section-kicker">為什麼做這個工具</span>
-          <h2 id="origin-title">一句看似肯定的話，<br />不一定是客觀事實。</h2>
+          <h2 id="origin-title">一句聽起來肯定、關心、為你好的話，<br />不一定是客觀事實。</h2>
         </div>
         <div className="origin-copy">
-          <p>這個專案的起點，是注意到人們很容易把主管、長輩或其他權威者的個人觀點，直接當成對世界的客觀結論。當有人斷言某件事「沒有用」，那句話也可能反映的是他自己的興趣、接觸程度、經驗與限制。</p>
-          <p>我們想提供一個停頓點：先分離事實與觀點，觀察話語是否反覆影響自我判斷，再保留真正值得參考的部分。目標不是把每句建議都視為操控，而是幫助人找回清晰思考與求助的空間。</p>
-          <div className="source-card">
-            <span>概念起點</span>
-            <strong>主觀經驗，常被包裝成客觀結論</strong>
-            <small>本專案最初受到社群公開討論啟發，並據此發展出獨立的五步驟分析框架。</small>
-            <small className="independence-note">本專案為獨立開源發想與實作；網站內容、分析與相關責任均由本專案維護者承擔。</small>
-          </div>
+          <p>這個專案的起點，是一個常見卻很少被拆開看的習慣：人們很容易把主管、長輩、同儕、伴侶或其他權威者的個人觀點，直接當成對世界的客觀結論。當有人斷言某件事，那句話也可能只是在反映他自己的興趣、接觸範圍、經驗、環境限制，甚至是他個人的信念，不是你的。</p>
+          <p>先客觀看發言者的狀態、處境與所處環境，就能有一個最基本的判斷依據。</p>
+          <p>這個工具想提供的，是一個停頓點：先把事實與觀點分開；再觀察這類話語是否反覆干擾你的自我判斷；最後只留下真正值得參考的部分。目標不是把每一句建議都當成操控，而是幫助人重新看清自己真正想要什麼，從較健康的情緒出發，做出決定——也意識到，有些時候，自己可能需要求助。</p>
         </div>
       </section>
       <footer><div><strong>修但幾咧～真的是這樣嗎？🤔💛</strong><small>Statement Decoder · 清晰思考，不提供反擊彈藥。</small></div><a href="https://github.com/Evan1206/statement-decoder" target="_blank" rel="noreferrer">開源專案 →</a></footer>
